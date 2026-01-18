@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureClaims - Fraud Detection</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ SecureClaims</h1>
+            <p class="subtitle">AI-Powered Insurance Fraud Detection</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel - Form -->
+            <div class="card form-card">
+                <h2>Enter Claim Details</h2>
+                <p class="form-description">Fill in the insurance claim information for fraud analysis</p>
+                
+                <form id="claimForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="customer_age">Customer Age</label>
+                            <input type="number" id="customer_age" name="customer_age" value="45" min="18" max="100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="customer_tenure_months">Customer Tenure (months)</label>
+                            <input type="number" id="customer_tenure_months" name="customer_tenure_months" value="30" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicle_age_years">Vehicle Age (years)</label>
+                            <input type="number" id="vehicle_age_years" name="vehicle_age_years" value="4" min="0" max="20" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="idv">Insured Declared Value (₹)</label>
+                            <input type="number" id="idv" name="idv" value="1000000" min="100000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="claim_amount">Claim Amount (₹)</label>
+                            <input type="number" id="claim_amount" name="claim_amount" value="400000" min="1000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="repair_estimate">Repair Estimate (₹)</label>
+                            <input type="number" id="repair_estimate" name="repair_estimate" value="450000" min="1000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="previous_claims_count">Previous Claims Count</label>
+                            <input type="number" id="previous_claims_count" name="previous_claims_count" value="3" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="accident_type">Accident Type</label>
+                            <select id="accident_type" name="accident_type" required>
+                                <option value="Rear-end collision">Rear-end collision</option>
+                                <option value="Side collision">Side collision</option>
+                                <option value="Fire">Fire</option>
+                                <option value="Theft" selected>Theft</option>
+                                <option value="Rollover">Rollover</option>
+                                <option value="Hit and run">Hit and run</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="damage_type">Damage Type</label>
+                            <select id="damage_type" name="damage_type" required>
+                                <option value="Front bumper">Front bumper</option>
+                                <option value="Rear bumper">Rear bumper</option>
+                                <option value="Side panel">Side panel</option>
+                                <option value="Engine" selected>Engine</option>
+                                <option value="Windshield">Windshield</option>
+                                <option value="Total loss">Total loss</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="police_report_filed" name="police_report_filed">
+                                <span>Police Report Filed</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="engine_guard_addon" name="engine_guard_addon">
+                                <span>Engine Guard Add-on</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tyre_rim_addon" name="tyre_rim_addon" checked>
+                                <span>Tyre & Rim Add-on</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span class="btn-text">🔍 Analyze Claim</span>
+                        <span class="btn-loading" style="display: none;">⏳ Analyzing...</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Panel - Results -->
+            <div class="card results-card">
+                <h2>Results and Analysis</h2>
+                
+                <div id="resultsPlaceholder" class="results-placeholder">
+                    <div class="placeholder-icon">📋</div>
+                    <p>Submit a claim to see the fraud analysis results</p>
+                </div>
+
+                <div id="resultsContent" style="display: none;">
+                    <!-- ML Score -->
+                    <div class="result-section">
+                        <h3>ML Model Score</h3>
+                        <div class="score-display">
+                            <span id="fraudProbability" class="big-number">0%</span>
+                            <span class="score-label">Fraud Probability</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                        <p class="confidence-text">Confidence: <span id="confidenceValue">0%</span></p>
+                    </div>
+
+                    <!-- Final Decision -->
+                    <div class="result-section">
+                        <h3>Final Decision</h3>
+                        <div id="decisionBox" class="decision-box">
+                            <span id="decisionText">-</span>
+                        </div>
+                    </div>
+
+                    <!-- LLM Analysis -->
+                    <div class="result-section">
+                        <h3>AI Analysis</h3>
+                        <div class="analysis-box">
+                            <div id="llmAnalysis" class="llm-analysis"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('claimForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            submitBtn.disabled = true;
+            
+            const formData = {
+                customer_age: parseInt(document.getElementById('customer_age').value),
+                customer_tenure_months: parseInt(document.getElementById('customer_tenure_months').value),
+                vehicle_age_years: parseInt(document.getElementById('vehicle_age_years').value),
+                idv: parseInt(document.getElementById('idv').value),
+                claim_amount: parseInt(document.getElementById('claim_amount').value),
+                repair_estimate: parseInt(document.getElementById('repair_estimate').value),
+                police_report_filed: document.getElementById('police_report_filed').checked,
+                previous_claims_count: parseInt(document.getElementById('previous_claims_count').value),
+                engine_guard_addon: document.getElementById('engine_guard_addon').checked,
+                tyre_rim_addon: document.getElementById('tyre_rim_addon').checked,
+                accident_type: document.getElementById('accident_type').value,
+                damage_type: document.getElementById('damage_type').value
+            };
+
+            try {
+                const response = await fetch('/api/detect-fraud', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                alert('Error analyzing claim: ' + error.message);
+            } finally {
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayResults(result) {
+            // Hide placeholder, show results
+            document.getElementById('resultsPlaceholder').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+
+            // Fraud probability
+            document.getElementById('fraudProbability').textContent = result.fraud_probability + '%';
+            
+            // Confidence bar
+            const confidenceFill = document.getElementById('confidenceFill');
+            confidenceFill.style.width = result.confidence + '%';
+            confidenceFill.className = 'confidence-fill ' + (result.confidence >= 70 ? 'high' : 'low');
+            document.getElementById('confidenceValue').textContent = result.confidence + '%';
+
+            // Decision box
+            const decisionBox = document.getElementById('decisionBox');
+            const decisionText = document.getElementById('decisionText');
+            const isFraud = result.final_decision.toUpperCase().includes('FRAUD') && 
+                           !result.final_decision.toUpperCase().includes('NOT FRAUD');
+            
+            decisionBox.className = 'decision-box ' + (isFraud ? 'fraud' : 'not-fraud');
+            decisionText.textContent = isFraud ? '🚨 FRAUD' : '✅ NOT FRAUD';
+
+            // LLM Analysis - convert markdown-like text to HTML
+            const analysisHtml = result.llm_analysis
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/---/g, '<hr>');
+            document.getElementById('llmAnalysis').innerHTML = analysisHtml;
+        }
+    </script>
+</body>
+</html>
