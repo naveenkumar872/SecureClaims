@@ -2,7 +2,7 @@
 SBI General Insurance Company Limited
 
 # PRIVATE CAR INSURANCE POLICY - PACKAGE
-## POLICY WORDING
+
 
 1. DEFINITIONS
 
