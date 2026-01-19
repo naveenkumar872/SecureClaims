@@ -221,11 +221,32 @@
             // Decision box
             const decisionBox = document.getElementById('decisionBox');
             const decisionText = document.getElementById('decisionText');
-            const isFraud = result.final_decision.toUpperCase().includes('FRAUD') && 
-                           !result.final_decision.toUpperCase().includes('NOT FRAUD');
-            
-            decisionBox.className = 'decision-box ' + (isFraud ? 'fraud' : 'not-fraud');
-            decisionText.textContent = isFraud ? '🚨 FRAUD' : '✅ NOT FRAUD';
+            const dec = result.final_decision.trim().toUpperCase();
+            let icon = '';
+            let boxClass = 'decision-box ';
+            let displayText = dec;
+            if (dec.includes('FRAUD') && !dec.includes('NOT FRAUD')) {
+                icon = '🚨 ';
+                boxClass += 'fraud';
+                displayText = 'FRAUD';
+            } else if (dec.includes('NOT FRAUD')) {
+                icon = '✅ ';
+                boxClass += 'not-fraud';
+                displayText = 'NOT FRAUD';
+            } else if (dec.includes('INVESTIGATE')) {
+                icon = '🔎 ';
+                boxClass += 'investigate';
+                displayText = 'INVESTIGATE';
+            } else if (dec.includes('REJECT')) {
+                icon = '❌ ';
+                boxClass += 'reject';
+                displayText = 'REJECT';
+            } else {
+                icon = 'ℹ️ ';
+                boxClass += 'other';
+            }
+            decisionBox.className = boxClass;
+            decisionText.textContent = icon + displayText;
 
             // LLM Analysis - convert markdown-like text to HTML
             const analysisHtml = result.llm_analysis

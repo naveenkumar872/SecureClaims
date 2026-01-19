@@ -190,11 +190,12 @@ ML MODEL PREDICTION ({confidence_type} CONFIDENCE):
 POLICY DOCUMENTS:
 {policy_context}
 
-Provide:
-1. FINAL DECISION: FRAUD or NOT FRAUD
-2. KEY FINDINGS: Main reasons for your decision
-3. RISK FACTORS: Red flags or positive indicators
-4. RECOMMENDATION: Approve, Reject, or Investigate
+Instructions:
+1. Your output must start with this exact phrase: FINAL DECISION: <decision>, where <decision> is only one of these three words: FRAUD, NOT FRAUD, or INVESTIGATE. Do not add any prefix, suffix, or extra words before or after this line.
+2. Then provide:
+   - KEY FINDINGS: Main reasons for your decision
+   - RISK FACTORS: Red flags or positive indicators
+   - RECOMMENDATION: Approve, Reject, or Investigate
 
 Be concise but thorough. Use Rs. for all currency references."""
 
@@ -236,17 +237,15 @@ async def detect_fraud(claim: ClaimInput):
         # Step 4: LLM Reasoning
         llm_analysis = llm_reasoning(claim_dict, ml_result, policy_docs)
         
-        # Extract final decision from LLM response
-        if "FINAL DECISION" in llm_analysis.upper():
-            decision_part = llm_analysis.upper().split("FINAL DECISION")[1][:50]
-            if "NOT FRAUD" in decision_part:
-                final_decision = "NOT FRAUD"
-            elif "FRAUD" in decision_part:
-                final_decision = "FRAUD"
-            else:
-                final_decision = ml_result['prediction']
-        else:
-            final_decision = ml_result['prediction']
+        # Extract final decision from LLM response (always use LLM if present)
+        import re
+        final_decision = ml_result['prediction']  # fallback if LLM decision not found
+        llm_text = llm_analysis.upper()
+        # Match any word/phrase after FINAL DECISION (up to newline or double space)
+        match = re.search(r"FINAL DECISION\s*[:\-]?\s*([A-Z ]+)", llm_text)
+        if match:
+            final_decision = match.group(1).strip()
+        print(final_decision)
         
         return FraudResult(
             ml_prediction=ml_result['prediction'],

@@ -110,7 +110,7 @@ Return ONLY the search query, nothing else."""
     full_prompt = "You are an insurance policy search expert. Generate precise search queries.\n\n" + prompt
     
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="moonshotai/kimi-k2-instruct-0905",
         messages=[{"role": "user", "content": full_prompt}],
         temperature=0.2,
         max_completion_tokens=150
@@ -175,6 +175,7 @@ RELEVANT POLICY DOCUMENTS:
 
 Since the ML model is confident, provide:
 1. FINAL DECISION: Confirm or adjust the ML prediction (FRAUD / NOT FRAUD)
+Do not make final decision other fraud/ not fraud
 2. EXPLANATION: Explain why this claim is {ml_result['prediction'].lower()} based on:
    - Key factors from the claim data
    - Relevant policy clauses that support this decision
@@ -186,10 +187,10 @@ Keep the response concise and actionable."""
     full_prompt = "You are an expert insurance fraud analyst. Provide clear, concise explanations.\n\n" + prompt
     
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="moonshotai/kimi-k2-instruct-0905",
         messages=[{"role": "user", "content": full_prompt}],
         temperature=0.3,
-        max_completion_tokens=1000
+      
     )
     
     return {
@@ -262,10 +263,10 @@ Be thorough - this is a borderline case that needs careful analysis."""
     full_prompt = "You are a senior insurance fraud analyst handling complex borderline cases. Be thorough and make independent decisions.\n\n" + prompt
     
     response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="moonshotai/kimi-k2-instruct-0905",
         messages=[{"role": "user", "content": full_prompt}],
         temperature=0.4,
-        max_completion_tokens=1500
+        
     )
     
     return {
